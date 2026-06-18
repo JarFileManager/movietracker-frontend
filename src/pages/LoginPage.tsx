@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { login } from "../services/AuthService";
 import type { LoginRequest } from "../types/LoginRequest";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
+
+  const navigate = useNavigate();
 
   async function handleLogin() {
     const request: LoginRequest = {
@@ -17,7 +20,11 @@ function LoginPage() {
     try {
       const response = await login(request);
 
-      console.log(response);
+      localStorage.setItem("token", response.token);
+
+      localStorage.setItem("username", response.username);
+
+      navigate("/home");
     } catch (error) {
       console.error(error);
     }

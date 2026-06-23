@@ -1,5 +1,5 @@
 import type { MovieCardProps } from "../types/MovieCardProps";
-function MovieCard({ movie }: MovieCardProps) {
+function MovieCard({ movie, onWatched }: MovieCardProps) {
   return (
     <>
       <img src={movie.posterUrl} width="200" />
@@ -11,6 +11,8 @@ function MovieCard({ movie }: MovieCardProps) {
       <p>Release Date: {movie.releaseDate}</p>
 
       <p>Rating: {movie.rating}</p>
+
+      <button onClick={() => onWatched(movie.id)}>YES</button>
     </>
   );
 }

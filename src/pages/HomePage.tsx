@@ -6,6 +6,7 @@ import { markMovieAsWatched } from "../services/WatchedService";
 import MovieOfDayModal from "../components/MovieOfDayModal";
 import ReviewModal from "../components/ReviewModal";
 import { addReview } from "../services/ReviewService";
+import { Link } from "react-router-dom";
 
 function HomePage() {
   const username = localStorage.getItem("username");
@@ -14,7 +15,9 @@ function HomePage() {
 
   const [movie, setMovie] = useState<ApiMovieResponse | null>(null);
 
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(
+    localStorage.getItem("movieOfDaySeen") !== "true",
+  );
 
   const [noCount, setNoCount] = useState(0);
 
@@ -47,6 +50,7 @@ function HomePage() {
       alert("Movie marked as watched!");
 
       setShowModal(false);
+      localStorage.setItem("movieOfDaySeen", "true");
       setShowReviewModal(true);
     } catch (error) {
       console.error(error);
@@ -58,6 +62,7 @@ function HomePage() {
       alert("Looks like you haven't watched many of these 😂");
 
       setShowModal(false);
+      localStorage.setItem("movieOfDaySeen", "true");
 
       return;
     }
@@ -75,6 +80,7 @@ function HomePage() {
 
   function handleSkip() {
     setShowModal(false);
+    localStorage.setItem("movieOfDaySeen", "true");
   }
 
   async function handleReviewSubmit(rating: number, comment: string) {
@@ -121,6 +127,10 @@ function HomePage() {
           onSkip={handleReviewSkip}
         />
       )}
+
+      <Link to="/search">Search Movies</Link>
+
+      <br />
 
       <br />
 

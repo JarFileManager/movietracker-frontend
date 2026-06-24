@@ -5,6 +5,8 @@ import SignupPage from "../pages/SignupPage";
 import HomePage from "../pages/HomePage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
+import SearchPage from "../pages/SearchPage";
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -18,6 +20,15 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <SearchPage />
             </ProtectedRoute>
           }
         />

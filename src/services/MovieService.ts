@@ -14,3 +14,18 @@ export async function getRandomMovie(): Promise<ApiMovieResponse> {
 
   return response.data;
 }
+
+export async function searchMovies(query: string): Promise<ApiMovieResponse[]> {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.get<ApiMovieResponse[]>(`${BASE_URL}/search`, {
+    params: {
+      query: query,
+    },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data;
+}

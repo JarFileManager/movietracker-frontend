@@ -13,7 +13,9 @@ function SearchPage() {
 
   const [showReviewModal, setShowReviewModal] = useState(false);
 
-  const [selectedMovie, setSelectedMovie] = useState<ApiMovieResponse | null>(null);
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [watchedClicked, setWatchedClicked] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   async function handleSearch() {
     try {
@@ -30,26 +32,28 @@ function SearchPage() {
       await markMovieAsWatched(movieId);
 
       alert("Movie marked as watched!");
+      setWatchedClicked(true);
     } catch (error) {
       console.error(error);
     }
   }
 
- async function handleReviewSubmit(rating: number, comment: string) {
-      if (selectedMovie === null) {
-        return;
-      }
-  
-      await addReview(selectedMovie.id, rating, comment);
-  
-      alert("Review saved!");
-  
-      setShowReviewModal(false);
+  async function handleReviewSubmit(rating: number, comment: string) {
+    if (selectedMovieId === null) {
+      return;
     }
-  
-    function handleReviewSkip() {
-      setShowReviewModal(false);
-    }
+
+    await addReview(selectedMovieId, rating, comment);
+
+    alert("Review saved!");
+
+    setShowReviewModal(false);
+    setReviewSubmitted(true);
+  }
+
+  function handleReviewSkip() {
+    setShowReviewModal(false);
+  }
 
   return (
     <>
@@ -72,27 +76,30 @@ function SearchPage() {
       {movies.map((movie) => (
         <div key={movie.id}>
           <h3>{movie.title}</h3>
-
           <img src={movie.posterUrl} width="150" />
-
           <p>{movie.overview}</p>
-
-          <button onClick={() => handleWatched(movie.id)}>Mark Watched</button>
-          <button onClick={() => {
-            setSelectedMovie(movie);
-            setShowReviewModal(true);
-          }}>
-            Review Movie
-          </button>
-
-          {showReviewModal && selectedMovie && (
-        <ReviewModal
-          movieId={selectedMovie.id}
-          onSubmit={handleReviewSubmit}
-          onSkip={handleReviewSkip}
-        />
-      )}
-
+          {watchedClicked === false && (
+            <button onClick={() => handleWatched(movie.id)}>
+              Mark Watched
+            </button>
+          )}
+          {reviewSubmitted === false && (
+            <button
+              onClick={() => {
+                setSelectedMovieId(movie.id);
+                setShowReviewModal(true);
+              }}
+            >
+              Review Movie
+            </button>
+          )}
+          {showReviewModal && selectedMovieId !== null && (
+            <ReviewModal
+              movieId={selectedMovieId}
+              onSubmit={handleReviewSubmit}
+              onSkip={handleReviewSkip}
+            />
+          )}
           <hr />
         </div>
       ))}

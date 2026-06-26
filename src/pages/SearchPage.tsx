@@ -3,8 +3,8 @@ import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 import { searchMovies } from "../services/MovieService";
 import { markMovieAsWatched } from "../services/WatchedService";
 import ReviewModal from "../components/ReviewModal";
-import { Link } from "react-router-dom";
 import { addReview } from "../services/ReviewService";
+import Navbar from "../components/Navbar";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
@@ -57,9 +57,7 @@ function SearchPage() {
 
   return (
     <>
-      <Link to="/home">Back To Home</Link>
-
-      <hr />
+      <Navbar/>
       <h1>Search Movies</h1>
 
       <input

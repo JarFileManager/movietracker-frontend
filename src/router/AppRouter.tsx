@@ -6,6 +6,8 @@ import HomePage from "../pages/HomePage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 import SearchPage from "../pages/SearchPage";
+import WatchedPage from "../pages/WatchedPage";
+import ReviewsPage from "../pages/ReviewsPage";
 
 function AppRouter() {
   return (
@@ -29,6 +31,24 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <SearchPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/watched"
+          element={
+            <ProtectedRoute>
+              <WatchedPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reviews"
+          element={
+            <ProtectedRoute>
+              <ReviewsPage />
             </ProtectedRoute>
           }
         />

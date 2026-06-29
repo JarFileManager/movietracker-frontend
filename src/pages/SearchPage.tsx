@@ -14,6 +14,7 @@ function SearchPage() {
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [selectedMovieTitle, setSelectedMovieTitle] = useState<string | null>(null);
   const [watchedClicked, setWatchedClicked] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
@@ -27,9 +28,9 @@ function SearchPage() {
     }
   }
 
-  async function handleWatched(movieId: number) {
+  async function handleWatched(movieId: number, movieTitle: string) {
     try {
-      await markMovieAsWatched(movieId);
+      await markMovieAsWatched(movieId, movieTitle);
 
       alert("Movie marked as watched!");
       setWatchedClicked(true);
@@ -39,11 +40,11 @@ function SearchPage() {
   }
 
   async function handleReviewSubmit(rating: number, comment: string) {
-    if (selectedMovieId === null) {
+    if (selectedMovieId === null || selectedMovieTitle === null) {
       return;
     }
 
-    await addReview(selectedMovieId, rating, comment);
+    await addReview(selectedMovieId, rating, comment, selectedMovieTitle);
 
     alert("Review saved!");
 
@@ -77,7 +78,7 @@ function SearchPage() {
           <img src={movie.posterUrl} width="150" />
           <p>{movie.overview}</p>
           {watchedClicked === false && (
-            <button onClick={() => handleWatched(movie.id)}>
+            <button onClick={() => handleWatched(movie.id, movie.title)}>
               Mark Watched
             </button>
           )}
@@ -85,6 +86,7 @@ function SearchPage() {
             <button
               onClick={() => {
                 setSelectedMovieId(movie.id);
+                setSelectedMovieTitle(movie.title);
                 setShowReviewModal(true);
               }}
             >

@@ -3,7 +3,7 @@ import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 interface MovieOfDayModalProps {
   movie: ApiMovieResponse;
 
-  onYes: (movieId: number) => Promise<void>;
+  onYes: (movieId: number, movieTitle: string) => Promise<void>;
 
   onNo: () => Promise<void>;
 
@@ -21,7 +21,7 @@ function MovieOfDayModal({ movie, onYes, onNo, onSkip }: MovieOfDayModalProps) {
 
       <p>{movie.overview}</p>
 
-      <button onClick={() => onYes(movie.id)}>YES</button>
+      <button onClick={() => onYes(movie.id, movie.title)}>YES</button>
 
       <button onClick={onNo}>NO</button>
 

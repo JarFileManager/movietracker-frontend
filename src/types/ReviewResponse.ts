@@ -8,4 +8,6 @@ export interface ReviewResponse {
   createdAt: string;
 
   comment: string;
+
+  movieTitle: string;
 }

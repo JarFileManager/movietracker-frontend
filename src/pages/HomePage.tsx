@@ -34,9 +34,9 @@ function HomePage() {
     fetchMovie();
   }, []);
 
-  async function handleYes(movieId: number) {
+  async function handleYes(movieId: number, movieTitle: string) {
     try {
-      await markMovieAsWatched(movieId);
+      await markMovieAsWatched(movieId, movieTitle);
 
       alert("Movie marked as watched!");
 
@@ -79,7 +79,7 @@ function HomePage() {
       return;
     }
 
-    await addReview(movie.id, rating, comment);
+    await addReview(movie.id, rating, comment, movie.title);
 
     alert("Review saved!");
 

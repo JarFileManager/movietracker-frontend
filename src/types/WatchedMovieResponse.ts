@@ -3,7 +3,7 @@ export interface WatchedMovieResponse {
 
   apiMovieId: number;
 
-  watched: boolean;
-
   createdAt: string;
+
+  movieTitle: string;
 }

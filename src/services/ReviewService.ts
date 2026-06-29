@@ -7,6 +7,7 @@ export async function addReview(
   apiMovieId: number,
   rating: number,
   comment: string,
+  movieTitle: string
 ): Promise<void> {
   const token = localStorage.getItem("token");
 
@@ -16,6 +17,7 @@ export async function addReview(
       apiMovieId,
       rating,
       comment,
+      movieTitle
     },
     {
       headers: {

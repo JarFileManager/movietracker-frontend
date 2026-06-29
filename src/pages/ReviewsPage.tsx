@@ -48,13 +48,13 @@ function ReviewsPage() {
       ) : (
         reviews.map((review) => (
           <div key={review.id}>
-            <h3>Movie Id: {review.apiMovieId}</h3>
+            <h3>{review.movieTitle}</h3>
 
             <p>Rating: {review.rating}</p>
 
             <p>Comment: {review.comment}</p>
             
-            <p>Added On: {review.createdAt}</p>
+            <p>Added On: {new Date(review.createdAt).toLocaleDateString()}</p>
 
             <button onClick={() => handleDeleteReview(review.id)}>Delete Review</button>
 

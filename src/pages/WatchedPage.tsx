@@ -48,11 +48,9 @@ function WatchedPage() {
       ) : (
         movies.map((movie) => (
           <div key={movie.id}>
-            <h3>Movie Id: {movie.apiMovieId}</h3>
+            <h3>{movie.movieTitle}</h3>
 
-            <p>Watched: {movie.watched ? "Yes" : "No"}</p>
-
-            <p>Added On: {movie.createdAt}</p>
+            <p>Added On: {new Date(movie.createdAt).toLocaleDateString()}</p>
 
             <button onClick={() => handleUnwatch(movie.apiMovieId)}> Didn't Watched? Click Here</button>
 

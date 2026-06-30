@@ -3,9 +3,13 @@ import Navbar from "../components/Navbar";
 import type { ReviewResponse } from "../types/ReviewResponse";
 
 import { getMyReviews, deleteReview } from "../services/ReviewService";
+import type { ApiMovieResponse } from "../types/ApiMovieResponse";
+import { getMovie } from "../services/MovieService";
+import MovieDetailsModal from "../components/MovieDetailsModal";
 
 function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
+  const [selectedMovie, setSelectedMovie] = useState<ApiMovieResponse | null>(null);
 
   useEffect(() => {
     async function fetchReviews() {
@@ -35,6 +39,16 @@ function ReviewsPage() {
     }
 }
 
+const handleViewDetails = async (apiMovieId: number) => {
+  try {
+    const movie = await getMovie(apiMovieId);
+
+    setSelectedMovie(movie);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
   return (
     <>
       <Navbar />
@@ -53,14 +67,27 @@ function ReviewsPage() {
             <p>Rating: {review.rating}</p>
 
             <p>Comment: {review.comment}</p>
-            
+
             <p>Added On: {new Date(review.createdAt).toLocaleDateString()}</p>
 
-            <button onClick={() => handleDeleteReview(review.id)}>Delete Review</button>
+            <button onClick={() => handleDeleteReview(review.id)}>
+              Delete Review
+            </button>
+
+            <button onClick={() => handleViewDetails(review.apiMovieId)}>
+              {" "}
+              View Details{" "}
+            </button>
 
             <hr />
           </div>
         ))
+      )}
+      {selectedMovie && (
+        <MovieDetailsModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+        />
       )}
     </>
   );

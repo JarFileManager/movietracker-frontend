@@ -6,6 +6,8 @@ import MovieOfDayModal from "../components/MovieOfDayModal";
 import ReviewModal from "../components/ReviewModal";
 import { addReview } from "../services/ReviewService";
 import Navbar from "../components/Navbar";
+import MovieSection from "../components/MovieSection";
+import {getTrendingMovies,getPopularMovies,getNowPlayingMovies,getTrendingTvShows} from "../services/MovieService";
 
 function HomePage() {
   const username = localStorage.getItem("username");
@@ -20,6 +22,15 @@ function HomePage() {
 
   const [showReviewModal, setShowReviewModal] = useState(false);
 
+  //New States
+  const [trendingMovies, setTrendingMovies] = useState<ApiMovieResponse[]>([]);
+
+  const [popularMovies, setPopularMovies] = useState<ApiMovieResponse[]>([]);
+
+  const [nowPlayingMovies, setNowPlayingMovies] = useState<ApiMovieResponse[]>([]);
+
+  const [trendingTvShows, setTrendingTvShows] = useState<ApiMovieResponse[]>([]);
+
   useEffect(() => {
     async function fetchMovie() {
       try {
@@ -31,7 +42,29 @@ function HomePage() {
       }
     }
 
+    async function fetchHomeSections() {
+      try {
+        const [trending, popular, nowPlaying, tv] = await Promise.all([
+          getTrendingMovies(),
+
+          getPopularMovies(),
+
+          getNowPlayingMovies(),
+
+          getTrendingTvShows(),
+        ]);
+
+        setTrendingMovies(trending);
+        setPopularMovies(popular);
+        setNowPlayingMovies(nowPlaying);
+        setTrendingTvShows(tv);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     fetchMovie();
+    fetchHomeSections();
   }, []);
 
   async function handleYes(movieId: number, movieTitle: string) {
@@ -96,7 +129,7 @@ function HomePage() {
 
   return (
     <>
-     <Navbar/>
+      <Navbar />
       <h1>Home Page</h1>
 
       <h2>Welcome, {username?.toUpperCase() ?? "Guest"}!</h2>
@@ -111,6 +144,14 @@ function HomePage() {
           onSkip={handleSkip}
         />
       )}
+
+      <MovieSection title="🔥 Trending Movies" movies={trendingMovies} />
+
+      <MovieSection title="🍿 Now Playing" movies={nowPlayingMovies} />
+
+      <MovieSection title="⭐ Popular Movies" movies={popularMovies} />
+
+      <MovieSection title="📺 Trending TV" movies={trendingTvShows} />
 
       {showReviewModal && movie && (
         <ReviewModal

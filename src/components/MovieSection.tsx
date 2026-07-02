@@ -1,5 +1,7 @@
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 
+import { Box, Card, CardMedia, CardContent, Typography, Rating } from "@mui/material";
+
 interface MovieSectionProps {
   title: string;
 
@@ -11,23 +13,58 @@ function MovieSection({
 
   movies,
 }: MovieSectionProps) {
+
   return (
     <>
-      <h2>{title}</h2>
+      <Typography
+        variant="h5"
+        sx={{
+          mt: 4,
+          mb: 2,
+        }}
+      >
+        {title}
+      </Typography>
 
-      <hr />
+      <Box
+        sx={{
+          display: "flex",
 
-      <div>
+          gap: 2,
+
+          overflowX: "auto",
+
+          pb: 2,
+        }}
+      >
         {movies.map((movie) => (
-          <div key={movie.id}>
-            <img src={movie.posterUrl} width="120" />
+          <Card
+            key={movie.id}
+            sx={{
+              minWidth: 220,
 
-            <h4>{movie.title}</h4>
+              maxWidth: 220,
 
-            <p>⭐ {movie.rating}</p>
-          </div>
+              flexShrink: 0,
+            }}
+          >
+            <CardMedia
+              component="img"
+              height="330"
+              image={movie.posterUrl}
+              alt={movie.title}
+            />
+
+            <CardContent>
+              <Typography variant="h6">{movie.title}</Typography>
+
+              <Rating value={movie.rating / 2} precision={0.5} readOnly />
+
+              <Typography variant="body2">{movie.releaseDate}</Typography>
+            </CardContent>
+          </Card>
         ))}
-      </div>
+      </Box>
     </>
   );
 }

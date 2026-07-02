@@ -1,5 +1,7 @@
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, CardMedia, Rating, Stack } from "@mui/material";
+
 interface MovieDetailsModalProps {
   movie: ApiMovieResponse;
 
@@ -7,24 +9,39 @@ interface MovieDetailsModalProps {
 }
 
 function MovieDetailsModal({ movie, onClose }: MovieDetailsModalProps) {
+
   return (
-    <>
-      <hr />
+    <Dialog open={true} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>{movie.title}</DialogTitle>
+      <DialogContent>
+        <Stack direction="row" spacing={3}>
+          <CardMedia
+            component="img"
+            image={movie.posterUrl}
+            sx={{
+              width: 220,
 
-      <h2>{movie.title}</h2>
+              borderRadius: 2,
+            }}
+          />
 
-      <img src={movie.posterUrl} width="200" />
+          <Stack spacing={2}>
+            <Typography>{movie.overview}</Typography>
 
-      <p>{movie.overview}</p>
+            <Typography>
+              Release Date:
+              {movie.releaseDate}
+            </Typography>
 
-      <p>Rating: {movie.rating}</p>
+            <Rating value={movie.rating / 2} precision={0.5} readOnly />
+          </Stack>
+        </Stack>
+      </DialogContent>
 
-      <p>Release Date: {movie.releaseDate}</p>
-
-      <button onClick={onClose}>Close</button>
-
-      <hr />
-    </>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

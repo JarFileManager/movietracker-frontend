@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -10,31 +11,33 @@ function Navbar() {
   }
 
   return (
-    <div>
-      <h2>🎬 MovieTracker</h2>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h5" sx={{ flexGrow: 1 }}>
+          🎬 MovieTracker
+        </Typography>
 
-      <hr />
+        <Button color="inherit" component={Link} to="/home">
+          Home
+        </Button>
 
-      <Link to="/home">Home</Link>
+        <Button color="inherit" component={Link} to="/search">
+          Search
+        </Button>
 
-      {" | "}
+        <Button color="inherit" component={Link} to="/watched">
+          Watched
+        </Button>
 
-      <Link to="/search">Search</Link>
+        <Button color="inherit" component={Link} to="/reviews">
+          Reviews
+        </Button>
 
-      {" | "}
-
-      <Link to="/watched">Watched</Link>
-
-      {" | "}
-
-      <Link to="/reviews">Reviews</Link>
-
-      {" | "}
-
-      <button onClick={handleLogout}>Logout</button>
-
-      <hr />
-    </div>
+        <Button color="inherit" onClick={handleLogout}>
+          Logout
+        </Button>
+      </Toolbar>
+    </AppBar>
   );
 }
 

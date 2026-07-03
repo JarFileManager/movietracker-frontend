@@ -7,7 +7,7 @@ export async function addReview(
   apiMovieId: number,
   rating: number,
   comment: string,
-  movieTitle: string
+  movieTitle: string,
 ): Promise<void> {
   const token = localStorage.getItem("token");
 
@@ -17,7 +17,7 @@ export async function addReview(
       apiMovieId,
       rating,
       comment,
-      movieTitle
+      movieTitle,
     },
     {
       headers: {
@@ -26,7 +26,6 @@ export async function addReview(
     },
   );
 }
-
 
 export async function getMyReviews(): Promise<ReviewResponse[]> {
   const token = localStorage.getItem("token");
@@ -48,4 +47,29 @@ export async function deleteReview(reviewId: string): Promise<void> {
       Authorization: `Bearer ${token}`,
     },
   });
+}
+
+export async function updateReview(
+  reviewId: string,
+  rating: number,
+  comment: string,
+  movieTitle: string,
+  apiMovieId: number,
+): Promise<void> {
+  const token = localStorage.getItem("token");
+
+  await axios.put(
+    `${BASE_URL}/${reviewId}`,
+    {
+      rating,
+      comment,
+      movieTitle,
+      apiMovieId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
 }

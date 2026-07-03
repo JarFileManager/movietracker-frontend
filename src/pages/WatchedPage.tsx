@@ -6,9 +6,25 @@ import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 import { getMovie } from "../services/MovieService";
 import MovieDetailsModal from "../components/MovieDetailsModal";
 
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Divider,
+  Snackbar,
+  Typography,
+} from "@mui/material";
+
 function WatchedPage() {
   const [movies, setMovies] = useState<WatchedMovieResponse[]>([]);
-  const [selectedMovie, setSelectedMovie] = useState<ApiMovieResponse | null>(null);
+  const [selectedMovie, setSelectedMovie] =
+    useState<ApiMovieResponse | null>(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     async function fetchMovies() {
@@ -18,25 +34,27 @@ function WatchedPage() {
         setMovies(response);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
 
     fetchMovies();
   }, []);
 
-    const handleUnwatch = async (apiMovieId: number) => {
-      try {
-        // Call the delete review service function here
-        await unwatchTheMovie(apiMovieId);
-  
-        // Update the reviews state after deletion
-          setMovies((prevMovies) =>
-          prevMovies.filter((movie) => movie.apiMovieId !== apiMovieId)
-        );
-      } catch (error) {
-        console.error("Error deleting review:", error);
-      }
-  }
+  const handleUnwatch = async (apiMovieId: number) => {
+    try {
+      await unwatchTheMovie(apiMovieId);
+
+      setMovies((prevMovies) =>
+        prevMovies.filter((movie) => movie.apiMovieId !== apiMovieId)
+      );
+
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleViewDetails = async (apiMovieId: number) => {
     try {
@@ -47,45 +65,95 @@ function WatchedPage() {
       console.error(error);
     }
   };
-  
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+
+        <Container>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 8,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        </Container>
+      </>
+    );
+  }
 
   return (
     <>
       <Navbar />
 
-      <h1>My Watched Movies</h1>
+      <Container>
+        <Box
+          sx={{
+            mt: 4,
+          }}
+        >
+          <Typography variant="h4">My Watched Movies</Typography>
+        </Box>
 
-      <hr />
+        <Divider sx={{ my: 2 }} />
 
-      {movies.length === 0 ? (
-        <p>You haven't watched any movies yet.</p>
-      ) : (
-        movies.map((movie) => (
-          <div key={movie.id}>
-            <h3>{movie.movieTitle}</h3>
+        {movies.length === 0 ? (
+          <Typography variant="body1">
+            You haven't watched any movies yet.
+          </Typography>
+        ) : (
+          movies.map((movie) => (
+            <div key={movie.id}>
+              <Typography variant="h6">{movie.movieTitle}</Typography>
 
-            <p>Added On: {new Date(movie.createdAt).toLocaleDateString()}</p>
+              <Typography>
+                Added On: {new Date(movie.createdAt).toLocaleDateString()}
+              </Typography>
 
-            <button onClick={() => handleUnwatch(movie.apiMovieId)}>
-              {" "}
-              Didn't Watched? Click Here
-            </button>
-            <button onClick={() => handleViewDetails(movie.apiMovieId)}>
-              {" "}
-              View Details{" "}
-            </button>
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => handleUnwatch(movie.apiMovieId)}
+                >
+                  Unwatch
+                </Button>
 
-            <hr />
-          </div>
-        ))
-      )}
+                <Button
+                  variant="outlined"
+                  sx={{ ml: 2 }}
+                  onClick={() => handleViewDetails(movie.apiMovieId)}
+                >
+                  View Details
+                </Button>
+              </Box>
 
-      {selectedMovie && (
-        <MovieDetailsModal
-          movie={selectedMovie}
-          onClose={() => setSelectedMovie(null)}
-        />
-      )}
+              <Divider sx={{ my: 2 }} />
+            </div>
+          ))
+        )}
+
+        {selectedMovie && (
+          <MovieDetailsModal
+            movie={selectedMovie}
+            onClose={() => setSelectedMovie(null)}
+          />
+        )}
+      </Container>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert severity="success" variant="filled">
+          Movie removed successfully!
+        </Alert>
+      </Snackbar>
     </>
   );
 }

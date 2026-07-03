@@ -1,30 +1,60 @@
 import { useState } from "react";
+
+import Navbar from "../components/Navbar";
+import ReviewModal from "../components/ReviewModal";
+
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
+
 import { searchMovies } from "../services/MovieService";
 import { markMovieAsWatched } from "../services/WatchedService";
-import ReviewModal from "../components/ReviewModal";
 import { addReview } from "../services/ReviewService";
-import Navbar from "../components/Navbar";
+
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Divider,
+  Snackbar,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 function SearchPage() {
   const [query, setQuery] = useState("");
 
   const [movies, setMovies] = useState<ApiMovieResponse[]>([]);
 
+  const [loading, setLoading] = useState(false);
+
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
-  const [selectedMovieTitle, setSelectedMovieTitle] = useState<string | null>(null);
-  const [watchedClicked, setWatchedClicked] = useState(false);
-  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+  const [selectedMovieTitle, setSelectedMovieTitle] = useState<string | null>(
+    null
+  );
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   async function handleSearch() {
+    if (query.trim() === "") {
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const response = await searchMovies(query);
 
       setMovies(response);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -32,8 +62,9 @@ function SearchPage() {
     try {
       await markMovieAsWatched(movieId, movieTitle);
 
-      alert("Movie marked as watched!");
-      setWatchedClicked(true);
+      setSnackbarMessage("Movie marked as watched!");
+
+      setSnackbarOpen(true);
     } catch (error) {
       console.error(error);
     }
@@ -44,12 +75,22 @@ function SearchPage() {
       return;
     }
 
-    await addReview(selectedMovieId, rating, comment, selectedMovieTitle);
+    try {
+      await addReview(
+        selectedMovieId,
+        rating,
+        comment,
+        selectedMovieTitle
+      );
 
-    alert("Review saved!");
+      setSnackbarMessage("Review saved successfully!");
 
-    setShowReviewModal(false);
-    setReviewSubmitted(true);
+      setSnackbarOpen(true);
+
+      setShowReviewModal(false);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   function handleReviewSkip() {
@@ -58,51 +99,115 @@ function SearchPage() {
 
   return (
     <>
-      <Navbar/>
-      <h1>Search Movies</h1>
+      <Navbar />
 
-      <input
-        type="text"
-        placeholder="Search movie..."
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-      />
+      <Container>
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h4">Search Movies</Typography>
+        </Box>
 
-      <button onClick={handleSearch}>Search</button>
+        <Divider sx={{ my: 2 }} />
 
-      <hr />
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 4,
+          }}
+        >
+          <TextField
+            fullWidth
+            label="Search Movie"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
 
-      {movies.map((movie) => (
-        <div key={movie.id}>
-          <h3>{movie.title}</h3>
-          <img src={movie.posterUrl} width="150" />
-          <p>{movie.overview}</p>
-          {watchedClicked === false && (
-            <button onClick={() => handleWatched(movie.id, movie.title)}>
-              Mark Watched
-            </button>
-          )}
-          {reviewSubmitted === false && (
-            <button
-              onClick={() => {
-                setSelectedMovieId(movie.id);
-                setSelectedMovieTitle(movie.title);
-                setShowReviewModal(true);
-              }}
-            >
-              Review Movie
-            </button>
-          )}
-          {showReviewModal && selectedMovieId !== null && (
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+          >
+            Search
+          </Button>
+        </Box>
+
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 5,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          movies.map((movie) => (
+            <Box key={movie.id}>
+              <Typography variant="h5">
+                {movie.title}
+              </Typography>
+
+              <img
+                src={movie.posterUrl}
+                width="150"
+              />
+
+              <Typography sx={{ mt: 2 }}>
+                {movie.overview}
+              </Typography>
+
+              <Box sx={{ mt: 2 }}>
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    handleWatched(movie.id, movie.title)
+                  }
+                >
+                  Mark Watched
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  sx={{ ml: 2 }}
+                  onClick={() => {
+                    setSelectedMovieId(movie.id);
+
+                    setSelectedMovieTitle(movie.title);
+
+                    setShowReviewModal(true);
+                  }}
+                >
+                  Review Movie
+                </Button>
+              </Box>
+
+              <Divider sx={{ my: 3 }} />
+            </Box>
+          ))
+        )}
+
+        {showReviewModal &&
+          selectedMovieId !== null && (
             <ReviewModal
               movieId={selectedMovieId}
               onSubmit={handleReviewSubmit}
               onSkip={handleReviewSkip}
             />
           )}
-          <hr />
-        </div>
-      ))}
+      </Container>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

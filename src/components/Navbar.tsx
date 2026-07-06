@@ -33,6 +33,10 @@ function Navbar() {
           Reviews
         </Button>
 
+        <Button color = "inherit" component={Link} to="/preferences">
+          Preferences
+        </Button>
+
         <Button color="inherit" onClick={handleLogout}>
           Logout
         </Button>

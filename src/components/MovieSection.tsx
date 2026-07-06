@@ -59,6 +59,9 @@ function MovieSection({
               <Typography variant="h6">{movie.title}</Typography>
 
               <Rating value={movie.rating / 2} precision={0.5} readOnly />
+              <Typography variant="body2">
+                TMDB Rating: {movie.rating.toFixed(1)} / 10
+              </Typography>
 
               <Typography variant="body2">{movie.releaseDate}</Typography>
             </CardContent>

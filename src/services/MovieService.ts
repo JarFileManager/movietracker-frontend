@@ -54,10 +54,10 @@ export async function getTrendingMovies(): Promise<ApiMovieResponse[]> {
   return response.data;
 }
 
-export async function getPopularMovies(): Promise<ApiMovieResponse[]> {
+export async function getTopRatedMovies(): Promise<ApiMovieResponse[]> {
   const token = localStorage.getItem("token");
 
-  const response = await axios.get<ApiMovieResponse[]>(`${BASE_URL}/popular`, {
+  const response = await axios.get<ApiMovieResponse[]>(`${BASE_URL}/top-rated`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

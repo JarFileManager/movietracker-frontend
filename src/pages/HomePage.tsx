@@ -7,7 +7,7 @@ import ReviewModal from "../components/ReviewModal";
 import { addReview } from "../services/ReviewService";
 import Navbar from "../components/Navbar";
 import MovieSection from "../components/MovieSection";
-import {getTrendingMovies,getPopularMovies,getNowPlayingMovies,getTrendingTvShows} from "../services/MovieService";
+import {getTrendingMovies, getTopRatedMovies, getNowPlayingMovies, getTrendingTvShows} from "../services/MovieService";
 
 function HomePage() {
   const username = localStorage.getItem("username");
@@ -25,7 +25,7 @@ function HomePage() {
   //New States
   const [trendingMovies, setTrendingMovies] = useState<ApiMovieResponse[]>([]);
 
-  const [popularMovies, setPopularMovies] = useState<ApiMovieResponse[]>([]);
+  const [topRatedMovies, setTopRatedMovies] = useState<ApiMovieResponse[]>([]);
 
   const [nowPlayingMovies, setNowPlayingMovies] = useState<ApiMovieResponse[]>([]);
 
@@ -44,10 +44,10 @@ function HomePage() {
 
     async function fetchHomeSections() {
       try {
-        const [trending, popular, nowPlaying, tv] = await Promise.all([
+        const [trending, topRated, nowPlaying, tv] = await Promise.all([
           getTrendingMovies(),
 
-          getPopularMovies(),
+          getTopRatedMovies(),
 
           getNowPlayingMovies(),
 
@@ -55,7 +55,7 @@ function HomePage() {
         ]);
 
         setTrendingMovies(trending);
-        setPopularMovies(popular);
+        setTopRatedMovies(topRated);
         setNowPlayingMovies(nowPlaying);
         setTrendingTvShows(tv);
       } catch (error) {
@@ -149,7 +149,7 @@ function HomePage() {
 
       <MovieSection title="🍿 Now Playing" movies={nowPlayingMovies} />
 
-      <MovieSection title="⭐ Popular Movies" movies={popularMovies} />
+      <MovieSection title="⭐ Top Rated Movies" movies={topRatedMovies} />
 
       <MovieSection title="📺 Trending TV" movies={trendingTvShows} />
 

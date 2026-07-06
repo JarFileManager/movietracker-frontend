@@ -6,8 +6,8 @@ import ReviewModal from "../components/ReviewModal";
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 
 import { searchMovies } from "../services/MovieService";
-import { markMovieAsWatched } from "../services/WatchedService";
-import { addReview } from "../services/ReviewService";
+import { markMovieAsWatched, getWatchedMovies } from "../services/WatchedService";
+import { addReview, getMyReviews } from "../services/ReviewService";
 
 import {
   Alert,
@@ -36,6 +36,10 @@ function SearchPage() {
     null
   );
 
+  const [watchedMovieIds, setWatchedMovieIds] = useState<Set<number>>(new Set());
+
+  const [reviewedMovieIds, setReviewedMovieIds] = useState<Set<number>>(new Set());
+
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -48,9 +52,18 @@ function SearchPage() {
     setLoading(true);
 
     try {
-      const response = await searchMovies(query);
+      const [searchResponse, watchedResponse, reviewResponse] =
+        await Promise.all([
+          searchMovies(query),
 
-      setMovies(response);
+          getWatchedMovies(),
+
+          getMyReviews(),
+        ]);
+
+      setMovies(searchResponse);
+      setWatchedMovieIds(new Set(watchedResponse.map((movie) => movie.apiMovieId)));
+      setReviewedMovieIds(new Set(reviewResponse.map((review) => review.apiMovieId)));
     } catch (error) {
       console.error(error);
     } finally {
@@ -61,6 +74,14 @@ function SearchPage() {
   async function handleWatched(movieId: number, movieTitle: string) {
     try {
       await markMovieAsWatched(movieId, movieTitle);
+
+      setWatchedMovieIds((prev) => {
+        const updated = new Set(prev);
+
+        updated.add(movieId);
+
+        return updated;
+      });
 
       setSnackbarMessage("Movie marked as watched!");
 
@@ -122,10 +143,7 @@ function SearchPage() {
             onChange={(event) => setQuery(event.target.value)}
           />
 
-          <Button
-            variant="contained"
-            onClick={handleSearch}
-          >
+          <Button variant="contained" onClick={handleSearch}>
             Search
           </Button>
         </Box>
@@ -143,42 +161,42 @@ function SearchPage() {
         ) : (
           movies.map((movie) => (
             <Box key={movie.id}>
-              <Typography variant="h5">
-                {movie.title}
-              </Typography>
+              <Typography variant="h5">{movie.title}</Typography>
 
-              <img
-                src={movie.posterUrl}
-                width="150"
-              />
+              <img src={movie.posterUrl} width="150" />
 
-              <Typography sx={{ mt: 2 }}>
-                {movie.overview}
-              </Typography>
+              <Typography sx={{ mt: 2 }}>{movie.overview}</Typography>
 
               <Box sx={{ mt: 2 }}>
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    handleWatched(movie.id, movie.title)
-                  }
-                >
-                  Mark Watched
-                </Button>
+                {watchedMovieIds.has(movie.id) ? (
+                  <Button variant="contained" color="success" disabled>
+                    ✓ Watched
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={() => handleWatched(movie.id, movie.title)}
+                  >
+                    Mark Watched
+                  </Button>
+                )}
 
-                <Button
-                  variant="outlined"
-                  sx={{ ml: 2 }}
-                  onClick={() => {
-                    setSelectedMovieId(movie.id);
+                {reviewedMovieIds.has(movie.id) ? (
+                  <Button variant="outlined">Update Review</Button>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setSelectedMovieId(movie.id);
 
-                    setSelectedMovieTitle(movie.title);
+                      setSelectedMovieTitle(movie.title);
 
-                    setShowReviewModal(true);
-                  }}
-                >
-                  Review Movie
-                </Button>
+                      setShowReviewModal(true);
+                    }}
+                  >
+                    Review Movie
+                  </Button>
+                )}
               </Box>
 
               <Divider sx={{ my: 3 }} />
@@ -186,14 +204,13 @@ function SearchPage() {
           ))
         )}
 
-        {showReviewModal &&
-          selectedMovieId !== null && (
-            <ReviewModal
-              movieId={selectedMovieId}
-              onSubmit={handleReviewSubmit}
-              onSkip={handleReviewSkip}
-            />
-          )}
+        {showReviewModal && selectedMovieId !== null && (
+          <ReviewModal
+            movieId={selectedMovieId}
+            onSubmit={handleReviewSubmit}
+            onSkip={handleReviewSkip}
+          />
+        )}
       </Container>
 
       <Snackbar
@@ -201,10 +218,7 @@ function SearchPage() {
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
       >
-        <Alert
-          severity="success"
-          variant="filled"
-        >
+        <Alert severity="success" variant="filled">
           {snackbarMessage}
         </Alert>
       </Snackbar>

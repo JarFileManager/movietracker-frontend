@@ -8,6 +8,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import SearchPage from "../pages/SearchPage";
 import WatchedPage from "../pages/WatchedPage";
 import ReviewsPage from "../pages/ReviewsPage";
+import PreferencesPage from "../pages/PreferencesPage";
 
 function AppRouter() {
   return (
@@ -52,6 +53,8 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/preferences" element={<PreferencesPage />} />
       </Routes>
     </BrowserRouter>
   );

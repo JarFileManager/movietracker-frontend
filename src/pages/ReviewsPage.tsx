@@ -3,7 +3,6 @@ import Navbar from "../components/Navbar";
 import type { ReviewResponse } from "../types/ReviewResponse";
 
 import { getMyReviews, deleteReview, updateReview } from "../services/ReviewService";
-import UpdateReviewModal from "../components/UpdateReviewModal";
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 import { getMovie } from "../services/MovieService";
 import MovieDetailsModal from "../components/MovieDetailsModal";
@@ -17,6 +16,7 @@ import {
   Button,
   Divider,
 } from "@mui/material";
+import ReviewDialog from "../components/ReviewDialog";
 
 function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewResponse[]>([]);
@@ -216,14 +216,14 @@ if (loading) {
         </Alert>
       </Snackbar>
 
-      {showUpdateModal && selectedReview && (
-        <UpdateReviewModal
-          initialRating={selectedReview.rating}
-          initialComment={selectedReview.comment}
-          onSubmit={handleUpdateReview}
-          onSkip={() => setShowUpdateModal(false)}
-        />
-      )}
+      <ReviewDialog
+        open={showUpdateModal}
+        title="Update Review"
+        initialRating={selectedReview?.rating}
+        initialComment={selectedReview?.comment}
+        onSubmit={handleUpdateReview}
+        onSkip={() => setShowUpdateModal(false)}
+      />
     </>
   );
 }

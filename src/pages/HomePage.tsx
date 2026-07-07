@@ -3,11 +3,12 @@ import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 import { getRandomMovie } from "../services/MovieService";
 import { markMovieAsWatched } from "../services/WatchedService";
 import MovieOfDayModal from "../components/MovieOfDayModal";
-import ReviewModal from "../components/ReviewModal";
 import { addReview } from "../services/ReviewService";
 import Navbar from "../components/Navbar";
 import MovieSection from "../components/MovieSection";
 import {getTrendingMovies, getTopRatedMovies, getNowPlayingMovies, getTrendingTvShows} from "../services/MovieService";
+import ReviewDialog from "../components/ReviewDialog";
+import { Snackbar, Alert} from "@mui/material";
 
 function HomePage() {
   const username = localStorage.getItem("username");
@@ -30,6 +31,10 @@ function HomePage() {
   const [nowPlayingMovies, setNowPlayingMovies] = useState<ApiMovieResponse[]>([]);
 
   const [trendingTvShows, setTrendingTvShows] = useState<ApiMovieResponse[]>([]);
+
+  const [snackbarOpen,setSnackbarOpen]= useState(false);
+
+  const [snackbarMessage,setSnackbarMessage]= useState("");
 
   useEffect(() => {
     async function fetchMovie() {
@@ -71,7 +76,9 @@ function HomePage() {
     try {
       await markMovieAsWatched(movieId, movieTitle);
 
-      alert("Movie marked as watched!");
+      setSnackbarMessage("Movie marked as watched!");
+
+      setSnackbarOpen(true);
 
       setShowModal(false);
       localStorage.setItem("movieOfDaySeen", "true");
@@ -83,7 +90,9 @@ function HomePage() {
 
   async function handleNo() {
     if (noCount >= 4) {
-      alert("Looks like you haven't watched many of these 😂");
+      setSnackbarMessage("Looks like you haven't watched many of these 😂");
+
+      setSnackbarOpen(true);
 
       setShowModal(false);
       localStorage.setItem("movieOfDaySeen", "true");
@@ -114,7 +123,11 @@ function HomePage() {
 
     await addReview(movie.id, rating, comment, movie.title);
 
-    alert("Review saved!");
+    setSnackbarMessage("Review saved!");
+
+    setSnackbarOpen(true);
+
+    
 
     setShowReviewModal(false);
   }
@@ -153,13 +166,22 @@ function HomePage() {
 
       <MovieSection title="📺 Trending TV" movies={trendingTvShows} />
 
-      {showReviewModal && movie && (
-        <ReviewModal
-          movieId={movie.id}
-          onSubmit={handleReviewSubmit}
-          onSkip={handleReviewSkip}
-        />
-      )}
+      <ReviewDialog
+        open={showReviewModal}
+        title="Review Movie"
+        onSubmit={handleReviewSubmit}
+        onSkip={handleReviewSkip}
+      />
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert severity="success" variant="filled">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
       <br />
     </>

@@ -1,13 +1,21 @@
 import { useState } from "react";
 
 import Navbar from "../components/Navbar";
-import ReviewModal from "../components/ReviewModal";
+import ReviewDialog from "../components/ReviewDialog";
 
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
+import type { ReviewResponse } from "../types/ReviewResponse";
 
 import { searchMovies } from "../services/MovieService";
-import { markMovieAsWatched, getWatchedMovies } from "../services/WatchedService";
-import { addReview, getMyReviews } from "../services/ReviewService";
+import {
+  markMovieAsWatched,
+  getWatchedMovies,
+} from "../services/WatchedService";
+import {
+  addReview,
+  getMyReviews,
+  updateReview,
+} from "../services/ReviewService";
 
 import {
   Alert,
@@ -33,12 +41,22 @@ function SearchPage() {
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
 
   const [selectedMovieTitle, setSelectedMovieTitle] = useState<string | null>(
-    null
+    null,
   );
 
-  const [watchedMovieIds, setWatchedMovieIds] = useState<Set<number>>(new Set());
+  const [selectedReview, setSelectedReview] = useState<ReviewResponse | null>(
+    null,
+  );
 
-  const [reviewedMovieIds, setReviewedMovieIds] = useState<Set<number>>(new Set());
+  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
+
+  const [watchedMovieIds, setWatchedMovieIds] = useState<Set<number>>(
+    new Set(),
+  );
+
+  const [reviewedMovieIds, setReviewedMovieIds] = useState<Set<number>>(
+    new Set(),
+  );
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -55,15 +73,21 @@ function SearchPage() {
       const [searchResponse, watchedResponse, reviewResponse] =
         await Promise.all([
           searchMovies(query),
-
           getWatchedMovies(),
-
           getMyReviews(),
         ]);
 
       setMovies(searchResponse);
-      setWatchedMovieIds(new Set(watchedResponse.map((movie) => movie.apiMovieId)));
-      setReviewedMovieIds(new Set(reviewResponse.map((review) => review.apiMovieId)));
+
+      setWatchedMovieIds(
+        new Set(watchedResponse.map((movie) => movie.apiMovieId)),
+      );
+
+      setReviewedMovieIds(
+        new Set(reviewResponse.map((review) => review.apiMovieId)),
+      );
+
+      setReviews(reviewResponse);
     } catch (error) {
       console.error(error);
     } finally {
@@ -92,21 +116,59 @@ function SearchPage() {
   }
 
   async function handleReviewSubmit(rating: number, comment: string) {
-    if (selectedMovieId === null || selectedMovieTitle === null) {
+    if (selectedMovieId == null || selectedMovieTitle == null) {
       return;
     }
 
     try {
-      await addReview(
-        selectedMovieId,
-        rating,
-        comment,
-        selectedMovieTitle
-      );
+      if (selectedReview == null) {
+        await addReview(selectedMovieId, rating, comment, selectedMovieTitle);
+
+        const newReview: ReviewResponse = {
+          id: crypto.randomUUID(),
+          apiMovieId: selectedMovieId,
+          movieTitle: selectedMovieTitle,
+          rating,
+          comment,
+          createdAt: new Date().toISOString(),
+        };
+
+        setReviews((prev) => [...prev, newReview]);
+
+        setReviewedMovieIds((prev) => {
+          const updated = new Set(prev);
+
+          updated.add(selectedMovieId);
+
+          return updated;
+        });
+      } else {
+        await updateReview(
+          selectedReview.id,
+          rating,
+          comment,
+          selectedReview.movieTitle,
+          selectedReview.apiMovieId,
+        );
+
+        setReviews((prev) =>
+          prev.map((review) =>
+            review.id === selectedReview.id
+              ? {
+                  ...review,
+                  rating,
+                  comment,
+                }
+              : review,
+          ),
+        );
+      }
 
       setSnackbarMessage("Review saved successfully!");
 
       setSnackbarOpen(true);
+
+      setSelectedReview(null);
 
       setShowReviewModal(false);
     } catch (error) {
@@ -115,9 +177,10 @@ function SearchPage() {
   }
 
   function handleReviewSkip() {
+    setSelectedReview(null);
+
     setShowReviewModal(false);
   }
-
   return (
     <>
       <Navbar />
@@ -159,58 +222,84 @@ function SearchPage() {
             <CircularProgress />
           </Box>
         ) : (
-          movies.map((movie) => (
-            <Box key={movie.id}>
-              <Typography variant="h5">{movie.title}</Typography>
+          movies.map((movie) => {
+            const hasWatched = watchedMovieIds.has(movie.id);
 
-              <img src={movie.posterUrl} width="150" />
+            const existingReview = reviews.find(
+              (review) => review.apiMovieId === movie.id,
+            );
 
-              <Typography sx={{ mt: 2 }}>{movie.overview}</Typography>
+            return (
+              <Box key={movie.id}>
+                <Typography variant="h5">{movie.title}</Typography>
 
-              <Box sx={{ mt: 2 }}>
-                {watchedMovieIds.has(movie.id) ? (
-                  <Button variant="contained" color="success" disabled>
-                    ✓ Watched
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    onClick={() => handleWatched(movie.id, movie.title)}
-                  >
-                    Mark Watched
-                  </Button>
-                )}
+                <img src={movie.posterUrl} width="150" />
 
-                {reviewedMovieIds.has(movie.id) ? (
-                  <Button variant="outlined">Update Review</Button>
-                ) : (
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setSelectedMovieId(movie.id);
+                <Typography sx={{ mt: 2 }}>{movie.overview}</Typography>
 
-                      setSelectedMovieTitle(movie.title);
+                <Box sx={{ mt: 2 }}>
+                  {hasWatched ? (
+                    <Button variant="contained" color="success" disabled>
+                      ✓ Watched
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={() => handleWatched(movie.id, movie.title)}
+                    >
+                      Mark Watched
+                    </Button>
+                  )}
 
-                      setShowReviewModal(true);
-                    }}
-                  >
-                    Review Movie
-                  </Button>
-                )}
+                  {existingReview ? (
+                    <Button
+                      variant="outlined"
+                      sx={{ ml: 2 }}
+                      onClick={() => {
+                        setSelectedMovieId(movie.id);
+
+                        setSelectedMovieTitle(movie.title);
+
+                        setSelectedReview(existingReview);
+
+                        setShowReviewModal(true);
+                      }}
+                    >
+                      Update Review
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      sx={{ ml: 2 }}
+                      onClick={() => {
+                        setSelectedMovieId(movie.id);
+
+                        setSelectedMovieTitle(movie.title);
+
+                        setSelectedReview(null);
+
+                        setShowReviewModal(true);
+                      }}
+                    >
+                      Review Movie
+                    </Button>
+                  )}
+                </Box>
+
+                <Divider sx={{ my: 3 }} />
               </Box>
-
-              <Divider sx={{ my: 3 }} />
-            </Box>
-          ))
+            );
+          })
         )}
 
-        {showReviewModal && selectedMovieId !== null && (
-          <ReviewModal
-            movieId={selectedMovieId}
-            onSubmit={handleReviewSubmit}
-            onSkip={handleReviewSkip}
-          />
-        )}
+        <ReviewDialog
+          open={showReviewModal}
+          title={selectedReview ? "Update Review" : "Review Movie"}
+          initialRating={selectedReview?.rating}
+          initialComment={selectedReview?.comment}
+          onSubmit={handleReviewSubmit}
+          onSkip={handleReviewSkip}
+        />
       </Container>
 
       <Snackbar

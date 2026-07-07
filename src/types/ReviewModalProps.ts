@@ -1,5 +1,11 @@
 export interface ReviewModalProps {
-  movieId: number;
+  open: boolean;
+
+  title?: string;
+
+  initialRating?: number;
+
+  initialComment?: string;
 
   onSubmit: (rating: number, comment: string) => Promise<void>;
 

@@ -8,7 +8,7 @@ import Navbar from "../components/Navbar";
 import MovieSection from "../components/MovieSection";
 import {getTrendingMovies, getTopRatedMovies, getNowPlayingMovies, getTrendingTvShows} from "../services/MovieService";
 import ReviewDialog from "../components/ReviewDialog";
-import { Snackbar, Alert} from "@mui/material";
+import { Snackbar, Alert, CircularProgress, Box, Typography, Container} from "@mui/material";
 
 function HomePage() {
   const username = localStorage.getItem("username");
@@ -136,16 +136,62 @@ function HomePage() {
     setShowReviewModal(false);
   }
 
+const [loadingMessage] = useState(() => {
+  const loadingMessages = [
+    "🎬 Spinning up magic...",
+    "🍿 Buttering the popcorn...",
+    "🎥 Finding today's masterpiece...",
+    "🦸 Calling Christopher Nolan...",
+    "📺 Asking IMDb politely...",
+    "🤖 Convincing AI this isn't Netflix...",
+    "💩 Wait I have diarrhea...",
+    "🐢 TMDB is running on Internet Explorer...",
+    "🚀 Launching movies into orbit...",
+    "🍕 Ordering pizza before the movie starts...",
+  ];
+
+  return loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+});
+
+
   if (movie === null) {
-    return <h2>Loading...</h2>;
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          gap: 3,
+        }}
+      >
+        <CircularProgress size={55} />
+
+        <Typography variant="h6">{loadingMessage}</Typography>
+      </Box>
+    );
   }
 
   return (
     <>
       <Navbar />
-      <h1>Home Page</h1>
+      <Container maxWidth="xl">
+        <Box
+          sx={{
+            mt: 4,
+            mb: 4,
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+            👋 Good Evening, Jatin
+          </Typography>
 
-      <h2>Welcome, {username?.toUpperCase() ?? "Guest"}!</h2>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+            Ready for today's movie?
+          </Typography>
+        </Box>
+      </Container>
 
       <hr />
 

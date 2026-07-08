@@ -1,21 +1,44 @@
 import { useState } from "react";
+
+import { useNavigate, Link } from "react-router-dom";
+
 import { login } from "../services/AuthService";
+
 import type { LoginRequest } from "../types/LoginRequest";
-import { useNavigate } from "react-router-dom";
+
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Paper,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 function LoginPage() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
 
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   async function handleLogin() {
     const request: LoginRequest = {
-      email: email,
-
-      password: password,
+      email,
+      password,
     };
+
+    setLoading(true);
 
     try {
       const response = await login(request);
@@ -27,36 +50,89 @@ function LoginPage() {
       navigate("/home");
     } catch (error) {
       console.error(error);
+
+      setSnackbarMessage("Invalid email or password.");
+
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <>
-      <h1>Login Page</h1>
+      <Container maxWidth="sm">
+        <Paper
+          elevation={4}
+          sx={{
+            mt: 10,
+            p: 4,
+            borderRadius: 3,
+          }}
+        >
+          <Stack spacing={3}>
+            <Typography variant="h4" sx={{
+                textAlign: "center",
+              }}>
+              🎬 MovieTracker
+            </Typography>
 
-      <div>
-        <input
-          type="text"
-          placeholder="Enter email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
-      </div>
+            <Typography variant="body1" sx={{
+                textAlign: "center",
+              }}>
+              Discover • Watch • Review
+            </Typography>
 
-      <br />
+            <TextField
+              label="Email"
+              fullWidth
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-      <div>
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </div>
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-      <br />
+            <Button
+              variant="contained"
+              size="large"
+              disabled={loading}
+              onClick={handleLogin}
+            >
+              {loading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                "Login"
+              )}
+            </Button>
 
-      <button onClick={handleLogin}>Login</button>
+            <Box sx={{
+                textAlign: "center",
+              }}>
+              <Typography variant="body2">Don't have an account?</Typography>
+
+              <Button component={Link} to="/signup">
+                Sign Up
+              </Button>
+            </Box>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert severity="error" variant="filled">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

@@ -184,7 +184,7 @@ const [loadingMessage] = useState(() => {
           }}
         >
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            👋 Good Evening, Jatin
+            👋 Good Evening, {username}
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>

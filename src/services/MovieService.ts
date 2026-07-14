@@ -1,7 +1,8 @@
 import axios from "axios";
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
+import { API_BASE_URL } from "../config";
 
-const BASE_URL = "http://localhost:8080/api/v1/movies";
+const BASE_URL = `${API_BASE_URL}/api/v1/movies`;
 
 export async function getRandomMovie(): Promise<ApiMovieResponse> {
   const token = localStorage.getItem("token");

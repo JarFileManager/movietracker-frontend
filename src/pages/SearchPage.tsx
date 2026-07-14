@@ -54,10 +54,6 @@ function SearchPage() {
     new Set(),
   );
 
-  const [reviewedMovieIds, setReviewedMovieIds] = useState<Set<number>>(
-    new Set(),
-  );
-
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -81,10 +77,6 @@ function SearchPage() {
 
       setWatchedMovieIds(
         new Set(watchedResponse.map((movie) => movie.apiMovieId)),
-      );
-
-      setReviewedMovieIds(
-        new Set(reviewResponse.map((review) => review.apiMovieId)),
       );
 
       setReviews(reviewResponse);
@@ -134,14 +126,6 @@ function SearchPage() {
         };
 
         setReviews((prev) => [...prev, newReview]);
-
-        setReviewedMovieIds((prev) => {
-          const updated = new Set(prev);
-
-          updated.add(selectedMovieId);
-
-          return updated;
-        });
       } else {
         await updateReview(
           selectedReview.id,

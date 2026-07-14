@@ -1,7 +1,8 @@
 import axios from "axios";
 import type { ReviewResponse } from "../types/ReviewResponse";
+import { API_BASE_URL } from "../config";
 
-const BASE_URL = "http://localhost:8080/api/v1/reviews";
+const BASE_URL = `${API_BASE_URL}/api/v1/reviews`;
 
 export async function addReview(
   apiMovieId: number,

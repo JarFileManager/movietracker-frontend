@@ -1,7 +1,8 @@
 import axios from "axios";
 import type { WatchedMovieResponse } from "../types/WatchedMovieResponse";
+import { API_BASE_URL } from "../config";
 
-const BASE_URL = "http://localhost:8080/api/v1/watched";
+const BASE_URL = `${API_BASE_URL}/api/v1/watched`;
 
 export async function markMovieAsWatched(apiMovieId: number, movieTitle: string): Promise<void> {
   const token = localStorage.getItem("token");

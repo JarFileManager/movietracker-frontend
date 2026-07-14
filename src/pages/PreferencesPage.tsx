@@ -23,8 +23,6 @@ import {
 
 function PreferencesPage() {
 
-  const [years, setYears] = useState<number[]>([1990, 2025]);
-
   const [minimumRating, setMinimumRating] = useState(7);
 
   const [includeAdult, setIncludeAdult] = useState(false);
@@ -32,6 +30,11 @@ function PreferencesPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const currentYear = new Date().getFullYear();
+  const [years, setYears] = useState<number[]>([
+  1990,
+  currentYear,
+]);
 
 useEffect(() => {
   async function loadPreferences() {
@@ -98,7 +101,7 @@ useEffect(() => {
         <Slider
           value={years}
           min={1950}
-          max={2025}
+          max={currentYear}
           valueLabelDisplay="auto"
           onChange={(_, value) => setYears(value as number[])}
         />

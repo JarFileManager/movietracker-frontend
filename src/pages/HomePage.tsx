@@ -171,18 +171,20 @@ function HomePage() {
   }
 
   async function handleReviewSubmit(rating: number, comment: string) {
-    if (selectedMovie == null) {
+    const reviewMovie = selectedMovie ?? movie;
+
+    if (reviewMovie == null) {
       return;
     }
 
     try {
       if (selectedReview == null) {
-        await addReview(selectedMovie.id, rating, comment, selectedMovie.title);
+        await addReview(reviewMovie.id, rating, comment, reviewMovie.title);
 
         const newReview: ReviewResponse = {
           id: crypto.randomUUID(),
-          apiMovieId: selectedMovie.id,
-          movieTitle: selectedMovie.title,
+          apiMovieId: reviewMovie.id,
+          movieTitle: reviewMovie.title,
           rating,
           comment,
           createdAt: new Date().toISOString(),
@@ -193,7 +195,7 @@ function HomePage() {
         setReviewedMovieIds((prev) => {
           const updated = new Set(prev);
 
-          updated.add(selectedMovie.id);
+          updated.add(reviewMovie.id);
 
           return updated;
         });

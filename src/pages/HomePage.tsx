@@ -1,19 +1,27 @@
 import { useEffect, useState } from "react";
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
 import { getRandomMovie } from "../services/MovieService";
-import { markMovieAsWatched } from "../services/WatchedService";
+import { markMovieAsWatched, getWatchedMovies } from "../services/WatchedService";
 import MovieOfDayModal from "../components/MovieOfDayModal";
-import { addReview } from "../services/ReviewService";
+import { addReview, getMyReviews, updateReview } from "../services/ReviewService";
 import Navbar from "../components/Navbar";
 import MovieSection from "../components/MovieSection";
 import {getTrendingMovies, getTopRatedMovies, getNowPlayingMovies, getTrendingTvShows} from "../services/MovieService";
 import ReviewDialog from "../components/ReviewDialog";
 import { Snackbar, Alert, CircularProgress, Box, Typography, Container} from "@mui/material";
+import MovieDetailsModal from "../components/MovieDetailsModal";
+import type { ReviewResponse } from "../types/ReviewResponse";
 
 function HomePage() {
   const username = localStorage.getItem("username");
 
   const [movie, setMovie] = useState<ApiMovieResponse | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<ApiMovieResponse | null>(null);
+
+  const [watchedMovieIds, setWatchedMovieIds] = useState<Set<number>>(new Set());
+
+  const [reviewedMovieIds, setReviewedMovieIds] = useState<Set<number>>(new Set());
+  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
 
   const [showModal, setShowModal] = useState(
     localStorage.getItem("movieOfDaySeen") !== "true",
@@ -36,6 +44,8 @@ function HomePage() {
 
   const [snackbarMessage,setSnackbarMessage]= useState("");
 
+  const [selectedReview, setSelectedReview] = useState<ReviewResponse | null>(null);
+
   useEffect(() => {
     async function fetchMovie() {
       try {
@@ -49,20 +59,23 @@ function HomePage() {
 
     async function fetchHomeSections() {
       try {
-        const [trending, topRated, nowPlaying, tv] = await Promise.all([
-          getTrendingMovies(),
-
-          getTopRatedMovies(),
-
-          getNowPlayingMovies(),
-
-          getTrendingTvShows(),
-        ]);
+        const [trending, topRated, nowPlaying, tv, watched, reviewResponse] =
+          await Promise.all([
+            getTrendingMovies(),
+            getTopRatedMovies(),
+            getNowPlayingMovies(),
+            getTrendingTvShows(),
+            getWatchedMovies(),
+            getMyReviews(),
+          ]);
 
         setTrendingMovies(trending);
         setTopRatedMovies(topRated);
         setNowPlayingMovies(nowPlaying);
         setTrendingTvShows(tv);
+        setWatchedMovieIds(new Set(watched.map((movie) => movie.apiMovieId)));
+        setReviewedMovieIds(new Set(reviewResponse.map((review) => review.apiMovieId)));
+        setReviews(reviewResponse);
       } catch (error) {
         console.error(error);
       }
@@ -87,6 +100,47 @@ function HomePage() {
       console.error(error);
     }
   }
+
+  async function handleMarkWatched() {
+  if (selectedMovie == null) {
+    return;
+  }
+
+  try {
+    await markMovieAsWatched(
+      selectedMovie.id,
+      selectedMovie.title,
+    );
+
+    setWatchedMovieIds((prev) => {
+      const updated = new Set(prev);
+
+      updated.add(selectedMovie.id);
+
+      return updated;
+    });
+
+    setSnackbarMessage("Movie marked as watched!");
+
+    setSnackbarOpen(true);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+  function handleReviewClick() {
+  if (selectedMovie == null) {
+    return;
+  }
+
+  const existingReview = reviews.find(
+    (review) => review.apiMovieId === selectedMovie.id,
+  );
+
+  setSelectedReview(existingReview ?? null);
+
+  setShowReviewModal(true);
+}
 
   async function handleNo() {
     if (noCount >= 4) {
@@ -117,22 +171,70 @@ function HomePage() {
   }
 
   async function handleReviewSubmit(rating: number, comment: string) {
-    if (movie === null) {
+    if (selectedMovie == null) {
       return;
     }
 
-    await addReview(movie.id, rating, comment, movie.title);
+    try {
+      if (selectedReview == null) {
+        await addReview(selectedMovie.id, rating, comment, selectedMovie.title);
 
-    setSnackbarMessage("Review saved!");
+        const newReview: ReviewResponse = {
+          id: crypto.randomUUID(),
+          apiMovieId: selectedMovie.id,
+          movieTitle: selectedMovie.title,
+          rating,
+          comment,
+          createdAt: new Date().toISOString(),
+        };
 
-    setSnackbarOpen(true);
+        setReviews((prev) => [...prev, newReview]);
 
-    
+        setReviewedMovieIds((prev) => {
+          const updated = new Set(prev);
 
-    setShowReviewModal(false);
+          updated.add(selectedMovie.id);
+
+          return updated;
+        });
+      } else {
+        await updateReview(
+          selectedReview.id,
+          rating,
+          comment,
+          selectedReview.movieTitle,
+          selectedReview.apiMovieId,
+        );
+
+        setReviews((prev) =>
+          prev.map((review) =>
+            review.id === selectedReview.id
+              ? {
+                  ...review,
+                  rating,
+                  comment,
+                }
+              : review,
+          ),
+        );
+      }
+
+      setSnackbarMessage("Review saved!");
+
+      setSnackbarOpen(true);
+
+      setSelectedReview(null);
+
+      setSelectedMovie(null);
+
+      setShowReviewModal(false);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   function handleReviewSkip() {
+    setSelectedReview(null);
     setShowReviewModal(false);
   }
 
@@ -204,20 +306,50 @@ const [loadingMessage] = useState(() => {
         />
       )}
 
-      <MovieSection title="🔥 Trending Movies" movies={trendingMovies} />
+      <MovieSection
+        title="🔥 Trending Movies"
+        movies={trendingMovies}
+        onMovieClick={setSelectedMovie}
+      />
 
-      <MovieSection title="🍿 Now Playing" movies={nowPlayingMovies} />
+      <MovieSection
+        title="🍿 Now Playing"
+        movies={nowPlayingMovies}
+        onMovieClick={setSelectedMovie}
+      />
 
-      <MovieSection title="⭐ Top Rated Movies" movies={topRatedMovies} />
+      <MovieSection
+        title="⭐ Top Rated Movies"
+        movies={topRatedMovies}
+        onMovieClick={setSelectedMovie}
+      />
 
-      <MovieSection title="📺 Trending TV" movies={trendingTvShows} />
+      <MovieSection
+        title="📺 Trending TV"
+        movies={trendingTvShows}
+        onMovieClick={setSelectedMovie}
+      />
 
       <ReviewDialog
         open={showReviewModal}
-        title="Review Movie"
+        title={selectedReview ? "Update Review" : "Review Movie"}
+        initialRating={selectedReview?.rating}
+        initialComment={selectedReview?.comment}
         onSubmit={handleReviewSubmit}
         onSkip={handleReviewSkip}
       />
+
+      {selectedMovie && (
+        <MovieDetailsModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+          showActions={true}
+          watched={watchedMovieIds.has(selectedMovie.id)}
+          reviewed={reviewedMovieIds.has(selectedMovie.id)}
+          onMarkWatched={handleMarkWatched}
+          onReview={handleReviewClick}
+        />
+      )}
 
       <Snackbar
         open={snackbarOpen}

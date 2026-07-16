@@ -6,12 +6,16 @@ interface MovieSectionProps {
   title: string;
 
   movies: ApiMovieResponse[];
+
+  onMovieClick: (movie: ApiMovieResponse) => void;
 }
 
 function MovieSection({
   title,
 
   movies,
+
+  onMovieClick
 }: MovieSectionProps) {
 
   return (
@@ -53,6 +57,10 @@ function MovieSection({
               height="330"
               image={movie.posterUrl}
               alt={movie.title}
+              sx={{
+                cursor: "pointer",
+              }}
+              onClick={() => onMovieClick(movie)}
             />
 
             <CardContent>

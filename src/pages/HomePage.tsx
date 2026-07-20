@@ -12,6 +12,9 @@ import { Snackbar, Alert, CircularProgress, Box, Typography, Container} from "@m
 import MovieDetailsModal from "../components/MovieDetailsModal";
 import type { ReviewResponse } from "../types/ReviewResponse";
 
+//import type { WatchlistResponse } from "../types/WatchlistResponse";
+import { addToWatchlist, getMyWatchlist, removeFromWatchlist } from "../services/WatchlistService";
+
 function HomePage() {
   const username = localStorage.getItem("username");
 
@@ -46,6 +49,10 @@ function HomePage() {
 
   const [selectedReview, setSelectedReview] = useState<ReviewResponse | null>(null);
 
+  const [watchlistMovieIds, setWatchlistMovieIds] = useState<Set<number>>(new Set());
+
+  //const [watchlist, setWatchlist] = useState<WatchlistResponse[]>([]);
+
   useEffect(() => {
     async function fetchMovie() {
       try {
@@ -59,7 +66,7 @@ function HomePage() {
 
     async function fetchHomeSections() {
       try {
-        const [trending, topRated, nowPlaying, tv, watched, reviewResponse] =
+        const [trending, topRated, nowPlaying, tv, watched, reviewResponse, watchlistResponse] =
           await Promise.all([
             getTrendingMovies(),
             getTopRatedMovies(),
@@ -67,6 +74,7 @@ function HomePage() {
             getTrendingTvShows(),
             getWatchedMovies(),
             getMyReviews(),
+            getMyWatchlist()
           ]);
 
         setTrendingMovies(trending);
@@ -76,6 +84,10 @@ function HomePage() {
         setWatchedMovieIds(new Set(watched.map((movie) => movie.apiMovieId)));
         setReviewedMovieIds(new Set(reviewResponse.map((review) => review.apiMovieId)));
         setReviews(reviewResponse);
+
+        //setWatchlist(watchlistResponse);
+        setWatchlistMovieIds(new Set(watchlistResponse.map((movie) => movie.apiMovieId)));
+
       } catch (error) {
         console.error(error);
       }
@@ -127,6 +139,64 @@ function HomePage() {
     console.error(error);
   }
 }
+
+  async function handleAddToWatchlist() {
+    if (selectedMovie == null) {
+      return;
+    }
+
+    try {
+      //const watchlistItem = 
+      await addToWatchlist(
+        selectedMovie.id,
+        selectedMovie.title,
+      );
+
+      // setWatchlist((prev) => [...prev, watchlistItem]);
+
+      setWatchlistMovieIds((prev) => {
+        const updated = new Set(prev);
+
+        updated.add(selectedMovie.id);
+
+        return updated;
+      });
+
+      setSnackbarMessage("Added to watchlist!");
+
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleRemoveFromWatchlist() {
+    if (selectedMovie == null) {
+      return;
+    }
+
+    try {
+      await removeFromWatchlist(selectedMovie.id);
+
+      // setWatchlist((prev) =>
+      //   prev.filter((movie) => movie.apiMovieId !== selectedMovie.id),
+      // );
+
+      setWatchlistMovieIds((prev) => {
+        const updated = new Set(prev);
+
+        updated.delete(selectedMovie.id);
+
+        return updated;
+      });
+
+      setSnackbarMessage("Removed from watchlist!");
+
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   function handleReviewClick() {
   if (selectedMovie == null) {
@@ -252,6 +322,7 @@ const [loadingMessage] = useState(() => {
     "🐢 TMDB is running on Internet Explorer...",
     "🚀 Launching movies into orbit...",
     "🍕 Ordering pizza before the movie starts...",
+    "🌵 Taking out the thorns from my behind.."
   ];
 
   return loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
@@ -350,6 +421,9 @@ const [loadingMessage] = useState(() => {
           reviewed={reviewedMovieIds.has(selectedMovie.id)}
           onMarkWatched={handleMarkWatched}
           onReview={handleReviewClick}
+          watchlisted={watchlistMovieIds.has(selectedMovie.id)}
+          onAddToWatchlist={handleAddToWatchlist}
+          onRemoveFromWatchlist={handleRemoveFromWatchlist}
         />
       )}
 

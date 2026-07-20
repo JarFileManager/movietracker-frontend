@@ -16,9 +16,15 @@ interface MovieDetailsModalProps {
   onMarkWatched?: () => void;
 
   onReview?: () => void;
+
+  watchlisted?: boolean;
+
+  onAddToWatchlist?: () => void;
+
+  onRemoveFromWatchlist?: () => void;
 }
 
-function MovieDetailsModal({ movie, onClose, showActions = false, watched = false, reviewed = false, onMarkWatched, onReview }: MovieDetailsModalProps) {
+function MovieDetailsModal({ movie, onClose, showActions = false, watched = false, reviewed = false, watchlisted = false, onMarkWatched, onReview, onAddToWatchlist, onRemoveFromWatchlist }: MovieDetailsModalProps) {
 
   return (
     <Dialog open={true} onClose={onClose} maxWidth="md" fullWidth>
@@ -67,6 +73,21 @@ function MovieDetailsModal({ movie, onClose, showActions = false, watched = fals
             <Button variant="outlined" onClick={onReview}>
               {reviewed ? "Update Review" : "Review"}
             </Button>
+
+            <Button
+              variant="outlined"
+              color={watchlisted ? "error" : "primary"}
+              onClick={
+                watchlisted
+                  ? onRemoveFromWatchlist
+                  : onAddToWatchlist
+              }
+            >
+              {watchlisted
+                ? "❤️ Remove from Watchlist"
+                : "🤍 Add to Watchlist"}
+            </Button>
+            
           </Stack>
         )}
 

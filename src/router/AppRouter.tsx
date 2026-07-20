@@ -8,6 +8,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import SearchPage from "../pages/SearchPage";
 import WatchedPage from "../pages/WatchedPage";
 import ReviewsPage from "../pages/ReviewsPage";
+import WatchlistPage from "../pages/WatchlistPage";
 import PreferencesPage from "../pages/PreferencesPage";
 
 function AppRouter() {
@@ -50,6 +51,15 @@ function AppRouter() {
           element={
             <ProtectedRoute>
               <ReviewsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/watchlist"
+          element={
+            <ProtectedRoute>
+              <WatchlistPage />
             </ProtectedRoute>
           }
         />

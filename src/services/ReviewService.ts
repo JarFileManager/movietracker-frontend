@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { ReviewResponse } from "../types/ReviewResponse";
+import type { PagedResponse } from "../types/PagedResponse";
 import { API_BASE_URL } from "../config";
 
 const BASE_URL = `${API_BASE_URL}/api/v1/reviews`;
@@ -9,10 +10,10 @@ export async function addReview(
   rating: number,
   comment: string,
   movieTitle: string,
-): Promise<void> {
+): Promise<ReviewResponse> {
   const token = localStorage.getItem("token");
 
-  await axios.post(
+  const response = await axios.post<ReviewResponse>(
     BASE_URL,
     {
       apiMovieId,
@@ -26,16 +27,23 @@ export async function addReview(
       },
     },
   );
+
+  return response.data;
 }
 
-export async function getMyReviews(): Promise<ReviewResponse[]> {
+export async function getMyReviews(
+  page: number,
+  size: number,
+): Promise<PagedResponse<ReviewResponse>> {
   const token = localStorage.getItem("token");
-
-  const response = await axios.get<ReviewResponse[]>(`${BASE_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await axios.get<PagedResponse<ReviewResponse>>(
+    `${BASE_URL}/me?page=${page}&size=${size}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   return response.data;
 }

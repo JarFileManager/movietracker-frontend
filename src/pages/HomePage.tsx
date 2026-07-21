@@ -12,7 +12,6 @@ import { Snackbar, Alert, CircularProgress, Box, Typography, Container} from "@m
 import MovieDetailsModal from "../components/MovieDetailsModal";
 import type { ReviewResponse } from "../types/ReviewResponse";
 
-//import type { WatchlistResponse } from "../types/WatchlistResponse";
 import { addToWatchlist, getMyWatchlist, removeFromWatchlist } from "../services/WatchlistService";
 
 function HomePage() {
@@ -51,8 +50,6 @@ function HomePage() {
 
   const [watchlistMovieIds, setWatchlistMovieIds] = useState<Set<number>>(new Set());
 
-  //const [watchlist, setWatchlist] = useState<WatchlistResponse[]>([]);
-
   useEffect(() => {
     async function fetchMovie() {
       try {
@@ -73,7 +70,7 @@ function HomePage() {
             getNowPlayingMovies(),
             getTrendingTvShows(),
             getWatchedMovies(),
-            getMyReviews(),
+            getMyReviews(0, 1000),
             getMyWatchlist()
           ]);
 
@@ -82,10 +79,9 @@ function HomePage() {
         setNowPlayingMovies(nowPlaying);
         setTrendingTvShows(tv);
         setWatchedMovieIds(new Set(watched.map((movie) => movie.apiMovieId)));
-        setReviewedMovieIds(new Set(reviewResponse.map((review) => review.apiMovieId)));
-        setReviews(reviewResponse);
+        setReviewedMovieIds(new Set(reviewResponse.content.map((review) => review.apiMovieId)));
+        setReviews(reviewResponse.content);
 
-        //setWatchlist(watchlistResponse);
         setWatchlistMovieIds(new Set(watchlistResponse.map((movie) => movie.apiMovieId)));
 
       } catch (error) {
@@ -146,13 +142,10 @@ function HomePage() {
     }
 
     try {
-      //const watchlistItem = 
       await addToWatchlist(
         selectedMovie.id,
         selectedMovie.title,
       );
-
-      // setWatchlist((prev) => [...prev, watchlistItem]);
 
       setWatchlistMovieIds((prev) => {
         const updated = new Set(prev);
@@ -177,10 +170,6 @@ function HomePage() {
 
     try {
       await removeFromWatchlist(selectedMovie.id);
-
-      // setWatchlist((prev) =>
-      //   prev.filter((movie) => movie.apiMovieId !== selectedMovie.id),
-      // );
 
       setWatchlistMovieIds((prev) => {
         const updated = new Set(prev);

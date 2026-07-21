@@ -29,7 +29,7 @@ function ReviewDialog({
     setRating(initialRating);
 
     setComment(initialComment);
-  }, [initialRating, initialComment]);
+  }, [open, initialRating, initialComment]);
 
   return (
     <Dialog

@@ -15,6 +15,7 @@ import {
   Alert,
   Button,
   Divider,
+  Pagination
 } from "@mui/material";
 import ReviewDialog from "../components/ReviewDialog";
 
@@ -27,12 +28,16 @@ function ReviewsPage() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedReview, setSelectedReview] = useState<ReviewResponse | null>(null);
 
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const pageSize = 10;
+
   useEffect(() => {
     async function fetchReviews() {
       try {
-        const response = await getMyReviews();
-
-        setReviews(response);
+        const response = await getMyReviews(page, pageSize);
+        setReviews(response.content);
+        setTotalPages(response.totalPages);
       } catch (error) {
         console.error(error);
       } finally {
@@ -41,7 +46,7 @@ function ReviewsPage() {
     }
 
     fetchReviews();
-  }, []);
+  }, [page]);
 
   const handleDeleteReview = async (reviewId: string) => {
     try {
@@ -197,6 +202,22 @@ if (loading) {
               <Divider sx={{ my: 2 }} />
             </div>
           ))
+        )}
+        {totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 4,
+            }}
+          >
+            <Pagination
+              count={totalPages}
+              page={page + 1}
+              color="primary"
+              onChange={(_, value) => setPage(value - 1)}
+            />
+          </Box>
         )}
         {selectedMovie && (
           <MovieDetailsModal

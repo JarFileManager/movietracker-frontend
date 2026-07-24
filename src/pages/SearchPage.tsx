@@ -69,14 +69,14 @@ function SearchPage() {
       const [searchResponse, watchedResponse, reviewResponse] =
         await Promise.all([
           searchMovies(query),
-          getWatchedMovies(),
+          getWatchedMovies(0, 1000),
           getMyReviews(0, 1000),
         ]);
 
       setMovies(searchResponse);
 
       setWatchedMovieIds(
-        new Set(watchedResponse.map((movie) => movie.apiMovieId)),
+        new Set(watchedResponse.content.map((movie) => movie.apiMovieId)),
       );
 
       setReviews(reviewResponse.content);

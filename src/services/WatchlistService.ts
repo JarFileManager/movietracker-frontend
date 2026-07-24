@@ -2,6 +2,7 @@ import axios from "axios";
 
 import type { WatchlistResponse } from "../types/WatchlistResponse";
 import { API_BASE_URL } from "../config";
+import type { PagedResponse } from "../types/PagedResponse";
 
 const BASE_URL = `${API_BASE_URL}/api/v1/watchlist`;
 
@@ -26,13 +27,16 @@ export async function addToWatchlist(
   return response.data;
 }
 
-export async function getMyWatchlist(): Promise<WatchlistResponse[]> {
+export async function getMyWatchlist(page: number, size: number): Promise<PagedResponse<WatchlistResponse>> {
   const token = localStorage.getItem("token");
-  const response = await axios.get(`${BASE_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await axios.get<PagedResponse<WatchlistResponse>>(
+    `${BASE_URL}/me?page=${page}&size=${size}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   return response.data;
 }

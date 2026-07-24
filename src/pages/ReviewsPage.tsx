@@ -37,7 +37,7 @@ function ReviewsPage() {
       try {
         const response = await getMyReviews(page, pageSize);
         setReviews(response.content);
-        setTotalPages(response.totalPages);
+        setTotalPages(response.page.totalPages);
       } catch (error) {
         console.error(error);
       } finally {

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+
 import type { WatchlistResponse } from "../types/WatchlistResponse";
-import { getMyWatchlist, removeFromWatchlist } from "../services/WatchlistService";
 import type { ApiMovieResponse } from "../types/ApiMovieResponse";
+
+import { getMyWatchlist, removeFromWatchlist } from "../services/WatchlistService";
 import { getMovie } from "../services/MovieService";
 import MovieDetailsModal from "../components/MovieDetailsModal";
 
@@ -13,25 +15,35 @@ import {
   CircularProgress,
   Container,
   Divider,
+  Pagination,
   Snackbar,
   Typography,
 } from "@mui/material";
 
 function WatchlistPage() {
   const [movies, setMovies] = useState<WatchlistResponse[]>([]);
-  const [selectedMovie, setSelectedMovie] =
-    useState<ApiMovieResponse | null>(null);
+
+  const [selectedMovie, setSelectedMovie] = useState<ApiMovieResponse | null>(null);
 
   const [loading, setLoading] = useState(true);
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
+  const [page, setPage] = useState(0);
+
+  const [totalPages, setTotalPages] = useState(0);
+
+  const pageSize = 10;
+
   useEffect(() => {
     async function fetchWatchlistMovies() {
-      try {
-        const response = await getMyWatchlist();
+      setLoading(true);
 
-        setMovies(response);
+      try {
+        const response = await getMyWatchlist(page, pageSize);
+
+        setMovies(response.content);
+        setTotalPages(response.page.totalPages);
       } catch (error) {
         console.error(error);
       } finally {
@@ -40,7 +52,7 @@ function WatchlistPage() {
     }
 
     fetchWatchlistMovies();
-  }, []);
+  }, [page]);
 
   const handleUnWatchlist = async (apiMovieId: number) => {
     try {
@@ -135,6 +147,23 @@ function WatchlistPage() {
               <Divider sx={{ my: 2 }} />
             </div>
           ))
+        )}
+
+        {totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 4,
+            }}
+          >
+            <Pagination
+              count={totalPages}
+              page={page + 1}
+              color="primary"
+              onChange={(_, value) => setPage(value - 1)}
+            />
+          </Box>
         )}
 
         {selectedMovie && (
